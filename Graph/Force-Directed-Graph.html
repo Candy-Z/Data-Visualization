@@ -1,0 +1,222 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD SVG 1.1//EN"
+        "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+
+<meta charset="UTF-8">
+<style>
+    .node {
+        stroke: black;
+        stroke-width: 2;
+        fill: red;
+    }
+    .line {
+        stroke: black;
+        stroke-width: 2;
+    }
+</style>
+<!--<script src="https://gitcdn.xyz/repo/goessner/v2/master/v2.min.js" ></script>-->
+<svg id="svg" width="960" height="600" version="1.1" xmlns="http://www.w3.org/2000/svg" ></svg>
+<script>
+
+    //一般变量
+    var CONST_MM = 50;
+    var CONST_K = 0.01;
+    var dx, dy;
+
+    //DOM元素变量
+    var svg = document.getElementById("svg");
+    var nodes = new Array(5);
+    var lines = new Array(4);
+
+    svg.onmousemove = function () {
+        var a = document.getElementsByClassName("node");
+        for(var i = 0; i < a.length; i++){
+            if(a[i].getAttribute("dragging") == "1")
+                break;
+        }
+        drag(a[i], event);
+    };
+    svg.onmouseup = function () {
+        var a = document.getElementsByClassName("node");
+        for(var i = 0; i < a.length; i++){
+            if(a[i].getAttribute("dragging") == "1")
+                break;
+        }
+        release(a[i], event);
+    };
+
+    for(var i = 0; i < 5; i++){
+        nodes[i] = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        nodes[i].sibling = new Array();
+        nodes[i].setAttribute("cx", (Math.random() - 0.5) * 40 + +svg.getAttribute("width") / 2);
+        nodes[i].setAttribute("cy", (Math.random() - 0.5) * 40 + +svg.getAttribute("height") / 2);
+        nodes[i].setAttribute("r", (Math.random() - 0.5) * 10 + 10);
+        nodes[i].weight = Math.pow(+nodes[i].getAttribute("r"), 2);
+        nodes[i].v = [0, 0];
+        nodes[i].setAttribute("class", "node");
+        nodes[i].setAttribute("dragging", "0");
+        nodes[i].onmousedown = function () {
+            drop(this, event);
+        };
+
+        svg.appendChild(nodes[i]);
+    }
+
+    for(var i = 0; i < 4; i++){
+        lines[i] = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        lines[i].setAttribute("length", "100");
+        lines[i].setAttribute("class", "line");
+        lines[i].setAttribute("length", 20);
+        lines[i].conn = new Array();
+        svg.appendChild(lines[i]);
+    }
+    lines[0].conn.push(0);
+    lines[0].conn.push(1);
+    lines[1].conn.push(1);
+    lines[1].conn.push(2);
+    lines[2].conn.push(2);
+    lines[2].conn.push(3);
+    lines[3].conn.push(2);
+    lines[3].conn.push(4);
+    change();
+
+    nodes[0].sibling.push([0,1]);
+    nodes[1].sibling.push([0,0]);nodes[1].sibling.push([1,2]);
+    nodes[2].sibling.push([1,1]);nodes[2].sibling.push([2,3]);nodes[2].sibling.push([3,4]);
+    nodes[3].sibling.push([2,2]);
+    nodes[4].sibling.push([3,2]);
+
+    setInterval(function () {
+        a();
+    }, 0.2);
+
+/************实现拖拽功能************/
+    function drop(a, evt) {
+
+        a.setAttribute("dragging", "1");
+
+        var evt = evt || window.event;
+        dx = +a.getAttribute("cx") - evt.clientX;
+        dy = +a.getAttribute("cy") - evt.clientY;
+
+    }
+    function drag(a, evt) {
+//        clearInterval(sh);
+        var evt = evt || window.event;
+        var nx = evt.offsetX + dx;
+        var ny = evt.offsetY + dy;
+        a.setAttribute("cx", nx);
+        a.setAttribute("cy", ny);
+        change();
+        adjust();
+    }
+    function release(a, evt) {
+
+        a.setAttribute("dragging", "0");
+        change();
+        var cv = evt || window.event;
+
+    }
+
+/**********力导图算法*************/
+    function a() {
+        var iterator = 100;
+        //Until the maximum number of iterations is exceeded
+        while (iterator--) {
+            //Initialise the totalDisplacement to zero.
+            var totalDisplacement = 0;
+
+            //For each node:
+            for (var i = 0; i < nodes.length; i++) {
+                //计算斥力场
+                nodes[i].netForce = [0, 0];
+                for (var j = 0; j < nodes.length; j++) {
+                    if (j == i)continue;
+                    var deltaX = +nodes[i].getAttribute("cx") - +nodes[j].getAttribute("cx");
+                    var deltaY = +nodes[i].getAttribute("cy") - +nodes[j].getAttribute("cy");
+                    var R2 = Math.pow(deltaX, 2) + Math.pow(deltaY, 2);
+                    var dist = Math.sqrt(R2);
+                    var scale = CONST_MM / R2;
+                    nodes[i].netForce[0] += scale * deltaX / dist;
+                    nodes[i].netForce[1] += scale * deltaY / dist;
+
+                }
+                //计算弹力场
+
+                for (j = 0; j < nodes[i].sibling.length; j++) {
+
+                    var k = nodes[i].sibling[j][1];
+                    var l = nodes[i].sibling[j][0];
+                    var deltaX = +nodes[i].getAttribute("cx") - +nodes[k].getAttribute("cx");
+                    var deltaY = +nodes[i].getAttribute("cy") - +nodes[k].getAttribute("cy");
+                    var R2 = Math.pow(deltaX, 2) + Math.pow(deltaY, 2);
+                    var dist = Math.sqrt(R2);
+                    var scale = (+lines[l].getAttribute("length") - dist) * CONST_K;
+                    nodes[i].netForce[0] += scale * deltaX / dist;
+                    nodes[i].netForce[1] += scale * deltaY / dist;
+                }
+
+                nodes[i].v[0] += nodes[i].netForce[0];
+                nodes[i].v[1] += nodes[i].netForce[1];
+
+                nodes[i].nx = +nodes[i].getAttribute("cx") + nodes[i].netForce[0];
+                nodes[i].ny = +nodes[i].getAttribute("cy") + nodes[i].netForce[1];
+            }
+            for (i = 0; i < nodes.length; i++) {
+
+                var deltaX = +nodes[i].getAttribute("cx") - nodes[i].nx;
+                var deltaY = +nodes[i].getAttribute("cy") - nodes[i].ny;
+                var R2 = Math.pow(deltaX, 2) + Math.pow(deltaY, 2);
+                var dist = Math.sqrt(R2);
+                totalDisplacement += dist;
+                nodes[i].setAttribute("cx", nodes[i].nx);
+                nodes[i].setAttribute("cy", nodes[i].ny);
+            }
+            for (var i = 0; i < lines.length; i++) {
+                var x1 = +nodes[lines[i].conn[0]].getAttribute("cx");
+                var y1 = +nodes[lines[i].conn[0]].getAttribute("cy");
+                var x2 = +nodes[lines[i].conn[1]].getAttribute("cx");
+                var y2 = +nodes[lines[i].conn[1]].getAttribute("cy");
+
+                lines[i].setAttribute("x1", x1);
+                lines[i].setAttribute("y1", y1);
+                lines[i].setAttribute("x2", x2);
+                lines[i].setAttribute("y2", y2);
+            }
+            if (totalDisplacement < 3)
+                break;
+        }
+        //调整图中心
+    }
+    function change() {
+        for (var i = 0; i < lines.length; i++) {
+            var x1 = +nodes[lines[i].conn[0]].getAttribute("cx");
+            var y1 = +nodes[lines[i].conn[0]].getAttribute("cy");
+            var x2 = +nodes[lines[i].conn[1]].getAttribute("cx");
+            var y2 = +nodes[lines[i].conn[1]].getAttribute("cy");
+
+            lines[i].setAttribute("x1", x1);
+            lines[i].setAttribute("y1", y1);
+            lines[i].setAttribute("x2", x2);
+            lines[i].setAttribute("y2", y2);
+        }
+    }
+    function adjust() {
+        var centerx = 0, centery = 0;
+        for(var i = 0; i < nodes.length; i++){
+            centerx += +nodes[i].getAttribute("cx");
+            centery += +nodes[i].getAttribute("cy");
+        }
+        centerx /= nodes.length;
+        centery /= nodes.length;
+        var diffx = centerx - (+svg.getAttribute("width") / 2);
+        var diffy = centery - (+svg.getAttribute("height") / 2);
+        for (var i = 0; i < nodes.length; i++) {
+            nodes[i].nx = +nodes[i].getAttribute("cx") - diffx;
+            nodes[i].ny = +nodes[i].getAttribute("cy") - diffy;
+            nodes[i].setAttribute("cx", nodes[i].nx);
+            nodes[i].setAttribute("cy", nodes[i].ny);
+            change();
+        }
+    }
+
+</script>
