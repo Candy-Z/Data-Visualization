@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>实时柱状图</title>
+</head>
+<body>
+<div >
+    <button type="button" onclick="sort()" style="margin-right:50px;">排序</button>
+    <input id="add" type="text"/>
+    <button type="button" onclick="add()" style="margin-right:50px;">添加</button>
+    <input id="del" type="text"/>
+    <button type="button" onclick="del()" style="margin-right:50px;">删除</button>
+</div>
+<script  src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script>
+    var MAX_LENGTH = 10;
+    var dataset = [200, 100, 50, 250];          //dataset tu be bounded to the graph
+
+    var width = 600;                            //svg-width
+    var height = 400;                           //svg-height
+
+    var rect_bottom = 350;                       //begin point-y of each rect
+    var rect_left = 50;                            //begin point-x of the first rect
+    var rect_padding = 5;
+    var rect_width = 40;                         //width of each rect
+
+    var f = d3.scale.category20();
+
+    var svg = d3.select("body")
+        .insert("svg", "div")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("version", "1.1")
+        .attr("xmlns", "http://www.w3.org/2000/svg");
+    svg.onload = draw();
+
+    function sort() {
+        dataset.sort(d3.ascending);//(d3.ascend);
+        draw();
+    }
+
+    function add() {
+        var data = d3.select("#add")
+            .property("value");
+        if(isNaN(data)){
+            alert("not a number!");
+            return;
+        }
+        if(dataset.length >= MAX_LENGTH){
+            alert("can't add more!");
+        }
+
+        dataset.push(+data);
+        draw();
+    }
+
+    function del() {
+        var index = d3.select("#del")
+                .property("value") - 1;
+        if(index > dataset.length-1 || index < 0){
+            alert("not a valid number");
+            return;
+        }
+
+        dataset.splice(index, 1);
+        draw();
+    }
+
+    function draw(){
+        var max_data = d3.max(dataset);
+        var scale = (rect_bottom - 30) / max_data ;
+
+        //绑定数据后，分别返回uodate、enter、exit部分
+        var rects = svg.selectAll("rect");
+        var update = rects.data(dataset);
+        var enter = update.enter();
+        var exit = update.exit();
+
+        //对update 部分的处理, 更新高度
+        update.transition()
+            .duration(1500)
+            .attr("x", function (d, i) {
+                return i * (rect_width + rect_padding) + rect_left;
+            })
+            .attr("y", function (d, i) {
+                return rect_bottom - scale * d;
+            })
+            .attr("height", function (d, i) {
+                return scale * d;
+            });
+
+
+        //对enter部分的处理
+        enter.append("rect")
+            .attr("x", function (d, i) {
+
+                return i * (rect_width + rect_padding) + rect_left;
+            })
+            .attr("y", rect_bottom)
+            .attr("width", rect_width)
+            .attr("height", 0)
+            .attr("fill", "steelblue")
+
+            .transition()
+            .duration(1500)
+
+            .attr("y", function (d, i) {
+                return rect_bottom - scale * d;
+            })
+            .attr("height", function (d, i) {
+                return scale * d;
+            });
+
+        //对exit部分的处理
+        exit.transition()
+            .duration(1500)
+            .attr("y", rect_bottom)
+            .attr("height", 0)
+            .remove();
+
+        //绑定数据后，分别返回uodate、enter、exit部分
+        var texts = svg.selectAll("text");
+        var update = texts.data(dataset);
+        var enter = update.enter();
+        var exit = update.exit();
+
+        //对update 部分的处理, 更新数值
+        update.transition()
+            .duration(1500)
+            .attr("x", function (d, i) {
+                return i * (rect_width + rect_padding) + rect_left;
+            })
+            .attr("y", function (d, i) {
+                return rect_bottom - scale * d;
+            })
+            .text(function (d, i) {
+                if(d != "0"){
+                    return d;
+                }
+            });
+
+        //对enter部分的处理
+        enter.append("text")
+            .text(function (d, i) {
+                if(d != "0"){
+                    return d;
+                }
+                else
+                    return "";
+            })
+            .attr("dx", rect_width / 2)
+            .attr("dy", "1em")
+            .attr("text-anchor", "middle")
+            .attr("x", function (d, i) {
+                return i * (rect_width + rect_padding) + rect_left;
+            })
+            .attr("y", rect_bottom)
+
+            .transition()
+            .duration(1500)
+
+            .attr("y", function (d, i) {
+                return rect_bottom - scale * d;
+            });
+
+        //对exit部分的处理
+        exit.remove();
+    }
+</script>
+</body>
+</html>
