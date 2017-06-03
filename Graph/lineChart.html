@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>折线图</title>
+    <style>
+        path,
+        .axis line{
+            fill: none;
+            stroke: black;
+            shape-rendering: orispEdges;
+        }
+
+        .axis text{
+            font-family: sans-serif;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script>
+    /*数据变量*/
+    var dataset = [
+        {
+            country: "china",
+            gdp: [[2000,11920], [2001,13170], [2002,14550],
+                  [2003,16500], [2004,19440], [2005,22870],
+                  [2006,27930], [2007,35040], [2008,45470],
+                  [2009,51050], [2010,59490], [2011,73140],
+                  [2012,83860], [2013,103550]]
+        },
+        {
+            country: "japan",
+            gdp: [[2000,47310], [2001,41590], [2002,39800],
+                  [2003,43020], [2004,46550], [2005,45710],
+                  [2006,43560], [2007,43560], [2008,48490],
+                  [2009,50350], [2010,54950], [2011,59050],
+                  [2012,59370], [2013,48980]]
+        }
+    ];
+
+    /*绘图变量*/
+    var width = 600;
+    var height = 600;
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    /*定义x,y坐标的比例尺并画坐标轴*/
+    var x_scale = d3.scale.ordinal()
+        .domain(d3.range(2000, 2015))
+        .rangePoints([0,400]);
+
+    var x_axis = d3.svg.axis()
+        .scale(x_scale)
+        .orient("bottom")
+        .ticks(14);
+
+    var g_x = svg.append("g")
+        .attr("transform", "translate(100,500)");
+
+    g_x.call(x_axis);
+
+    g_x.attr("class", "axis");
+
+    var y_scale = d3.scale.linear()
+        .domain([10000,120000])
+        .range([400,0]);
+
+    var y_axis = d3.svg.axis()
+        .scale(y_scale)
+        .orient("left");
+
+    var g_y = svg.append("g")
+        .attr("transform", "translate(100,100)");
+
+    g_y.call(y_axis);
+
+    g_y.attr("class", "axis");
+
+    //使用路径生成器
+    var line_path = d3.svg.line()
+        .interpolate("cardinal")
+        .x(function (d) {
+            return 100 + x_scale(d[0]);
+        })
+        .y(function (d) {
+            return 100 + y_scale(d[1]);
+        });
+
+    svg.selectAll(".path")
+        .data(dataset)
+        .enter()
+        .append("path")
+        .attr("d", function (d,i) {
+            return line_path(d.gdp)
+        })
+
+</script>
+</body>
+</html>
