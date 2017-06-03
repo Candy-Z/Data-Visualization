@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>时钟动画</title>
+    <style>
+        .text{
+            font-family: Cursive;
+            /*font-size: 20px;*/
+            stroke: black;
+            stroke-width: 2px;
+        }
+    </style>
+</head>
+<body>
+<script  src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script>
+    var dataset = d3.range(12);
+    var dataset1 = d3.range(60);
+    var width = 960, height = 600;
+
+    var x0 = 400, y0 = 400, r0 = 160;
+    var line_h_length = r0 * 0.6;
+    var line_m_length = r0 * 0.8;
+    var line_s_length = r0 * 0.9;
+//    var rotate0 = Math.PI * 0.5;
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    /*画表盘*/
+    var circle = svg.append("circle")
+        .attr("cx", x0)
+        .attr("cy", y0)
+        .attr("r", r0)
+        .attr("stroke", "black")
+        .attr("stroke-width", "2px")
+        .attr("fill", "none");
+
+    /*画刻度线*/
+    var ticks1 = svg.selectAll(".tick1")
+        .data(dataset)
+        .enter()
+        .append("line")
+        .attr("x1",function (d, i) {
+            var rotate0 = 2 * Math.PI / dataset.length;
+            var rotate = (i + 1) * rotate0 - Math.PI * 0.5;
+            return x0 + r0 * Math.cos(rotate);
+        })
+        .attr("y1",function (d, i) {
+            var rotate0 = 2 * Math.PI / dataset.length;
+            var rotate = (i + 1) * rotate0 - Math.PI * 0.5;
+            return y0 + r0 * Math.sin(rotate);
+        })
+        .attr("x2", function (d, i) {
+            var rotate0 = 2 * Math.PI / dataset.length;
+            var rotate = (i + 1) * rotate0 - Math.PI * 0.5;
+            return x0 + 153 * Math.cos(rotate);
+        })
+        .attr("y2", function (d, i) {
+            var rotate0 = 2 * Math.PI / dataset.length;
+            var rotate = (i + 1) * rotate0 - Math.PI * 0.5;
+            return y0 + 153 * Math.sin(rotate);
+        })
+        .attr("stroke-width", "3px")
+        .attr("stroke", "black");
+
+    var ticks2 = svg.selectAll(".tick2")
+        .data(dataset1)
+        .enter()
+        .append("line")
+        .attr("x1",function (d, i) {
+            var rotate0 = 2 * Math.PI / dataset1.length;
+            var rotate = (i + 1) * rotate0 - Math.PI * 0.5;
+            return x0 + r0 * Math.cos(rotate);
+        })
+        .attr("y1",function (d, i) {
+            var rotate0 = 2 * Math.PI / dataset1.length;
+            var rotate = (i + 1) * rotate0 - Math.PI * 0.5;
+            return y0 + r0 * Math.sin(rotate);
+        })
+        .attr("x2", function (d, i) {
+            var rotate0 = 2 * Math.PI / dataset1.length;
+            var rotate = (i + 1) * rotate0 - Math.PI * 0.5;
+            return x0 + 155 * Math.cos(rotate);
+        })
+        .attr("y2", function (d, i) {
+            var rotate0 = 2 * Math.PI / dataset1.length;
+            var rotate = (i + 1) * rotate0 - Math.PI * 0.5;
+            return y0 + 155 * Math.sin(rotate);
+        })
+        .attr("stroke-width", "2px")
+        .attr("stroke", "black");
+
+    /*写刻度值*/
+    var nums = svg.selectAll(".text")
+        .data(dataset)
+        .enter()
+        .append("text")
+        .attr("class", "text")
+        .attr("x",function (d, i) {
+            var rotate0 = 2 * Math.PI / dataset.length;
+            var rotate = (i + 1) * rotate0 - Math.PI * 0.5;
+            return x0 + 135 * Math.cos(rotate);
+        })
+        .attr("y",function (d, i) {
+            var rotate0 = 2 * Math.PI / dataset.length;
+            var rotate = (i + 1) * rotate0 - Math.PI * 0.5;
+            return y0 + 135 * Math.sin(rotate);
+        })
+        .attr("dx", 0)
+        .attr("dy", "0.5ex")
+        .attr("text-anchor", "middle")
+        .attr("font-size", function (d, i) {
+            if(i % 3 == 2)
+                return "30px";
+            else return "20px";
+        })
+        .text(function (d, i) {
+            return i + 1;
+        });
+
+    /*画装饰*/
+    var text = svg.append("text")
+        .attr("x", x0)
+        .attr("y", y0 - r0 / 3)
+        .attr("text-anchor", "middle")
+        .attr("font-size", "35px")
+//        .style("fill", "red")
+        .attr("stroke-width", 0)
+        .attr("stroke", "red")
+        .text("I Love U");
+
+    var line_h = svg.append("line")
+        .attr("x1", x0)
+        .attr("y1", y0)
+        .attr("x2", x0)
+        .attr("y2", y0)
+        .attr("stroke-width", "3px")
+        .attr("stroke", "white");
+
+    var line_m = svg.append("line")
+        .attr("x1", x0)
+        .attr("y1", y0)
+        .attr("x2", x0)
+        .attr("y2", y0)
+        .attr("stroke-width", "2px")
+        .attr("stroke", "white");
+
+    var line_s = svg.append("line")
+        .attr("x1", x0)
+        .attr("y1", y0)
+        .attr("x2", x0)
+        .attr("y2", y0)
+        .attr("stroke-width", "1px")
+        .attr("stroke", "white");
+
+    setInterval(draw,1000);
+
+    function draw() {
+        update();
+
+
+//        text.text(getString());
+    }
+
+    function update() {
+        var time = new Date();
+        var h = time.getHours();
+        var m = time.getMinutes();
+        var s = time.getSeconds();
+
+        var rotate0 = 2 * Math.PI / dataset.length;
+        var rotate_s = s % 60 / 60 * Math.PI * 2 - Math.PI * 0.5;
+        var rotate_m = m % 60 / 60 * Math.PI * 2 - Math.PI * 0.5;
+        var rotate_h = h % 12 / 12 * Math.PI * 2 - Math.PI * 0.5 + (m % 60 / 60) * rotate0;
+
+        var x2 = x0 + Math.cos(rotate_h) * line_h_length;
+        var y2 = y0 + Math.sin(rotate_h) * line_h_length;
+        line_h.transition()
+            .duration(1000)
+            .attr("x2", x2)
+            .attr("y2", y2)
+//            .attr("stroke-width", "3px")
+            .attr("stroke", "red");
+
+
+        x2 = x0 + Math.cos(rotate_m) * line_m_length;
+        y2 = y0 + Math.sin(rotate_m) * line_m_length;
+        line_m.transition()
+            .duration(1000)
+            .attr("x2", x2)
+            .attr("y2", y2)
+//            .attr("stroke-width", "2px")
+            .attr("stroke", "green");
+
+
+        x2 = x0 + Math.cos(rotate_s) * line_s_length;
+        y2 = y0 + Math.sin(rotate_s) * line_s_length;
+        line_s.attr("x2", x2)
+            .attr("y2", y2)
+//            .attr("stroke-width", "1px")
+            .attr("stroke", "yellow");
+    }
+</script>
+</body>
+</html>
