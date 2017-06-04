@@ -6,7 +6,6 @@
     <style>
         .text{
             font-family: Cursive;
-            /*font-size: 20px;*/
             stroke: black;
             stroke-width: 2px;
         }
@@ -127,7 +126,6 @@
         .attr("y", y0 - r0 / 3)
         .attr("text-anchor", "middle")
         .attr("font-size", "35px")
-//        .style("fill", "red")
         .attr("stroke-width", 0)
         .attr("stroke", "red")
         .text("I Love U");
@@ -160,9 +158,6 @@
 
     function draw() {
         update();
-
-
-//        text.text(getString());
     }
 
     function update() {
@@ -182,9 +177,7 @@
             .duration(1000)
             .attr("x2", x2)
             .attr("y2", y2)
-//            .attr("stroke-width", "3px")
             .attr("stroke", "red");
-
 
         x2 = x0 + Math.cos(rotate_m) * line_m_length;
         y2 = y0 + Math.sin(rotate_m) * line_m_length;
@@ -192,15 +185,12 @@
             .duration(1000)
             .attr("x2", x2)
             .attr("y2", y2)
-//            .attr("stroke-width", "2px")
             .attr("stroke", "green");
-
 
         x2 = x0 + Math.cos(rotate_s) * line_s_length;
         y2 = y0 + Math.sin(rotate_s) * line_s_length;
         line_s.attr("x2", x2)
             .attr("y2", y2)
-//            .attr("stroke-width", "1px")
             .attr("stroke", "yellow");
     }
 </script>
