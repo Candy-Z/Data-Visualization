@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>饼状图</title>
+</head>
+<body>
+<script  src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script>
+    /*数据变量*/
+    var dataset = [["小米",60.8], ["三星",58.4], ["华为",33.6], ["联想",47.8], ["酷派",23.5]];
+
+    /*绘图变量*/
+    var width = 960,
+        height = 600;
+
+    /*画布*/
+    var svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    /*创建弧生成器*/
+    var arcPath = d3.svg.arc()
+        .innerRadius(0)
+        .outerRadius(150);
+
+    /*创建一个饼状图布局*/
+    var pie = d3.layout.pie()
+        .value(function (d) {
+            return d[1];
+        });
+
+    var pie_data = pie(dataset);        //转换数据
+    var color = d3.scale.category10();      //每个扇区不同颜色
+
+    /*画饼状图的各个扇区*/
+    var arcs = svg.selectAll("g")
+        .data(pie_data)
+        .enter()
+        .append("g")
+        .attr("transform", "translate("+width / 2+", "+height / 2+")");
+
+    arcs.append("path")
+        .attr("fill", function (d, i) {
+            return color(i);
+        })
+        .attr("d", function (d) {
+            return arcPath(d);
+        });
+
+    /*添加图内文字*/
+    arcs.append("text")
+        .attr("x", function (d) {
+            return arcPath.centroid(d)[0] * 1.3;
+        })
+        .attr("y", function (d) {
+            return arcPath.centroid(d)[1] * 1.3;
+        })
+        .attr("text-anchor", "middle")
+        .text(function (d, i) {
+            var percent = +d.value / d3.sum(dataset,function (d) {return d[1];});
+            return percent.toFixed(1)+"%";
+        });
+
+    /*添加图外标记线*/
+    arcs.append("line")
+        .attr("x1", function (d) {
+            return arcPath.centroid(d)[0] * 2
+        })
+        .attr("y1", function (d) {
+            return arcPath.centroid(d)[1] * 2
+        })
+        .attr("x2", function (d) {
+            return arcPath.centroid(d)[0] * 2.2
+        })
+        .attr("y2", function (d) {
+            return arcPath.centroid(d)[1] * 2.2
+        })
+        .attr("stroke", "black");
+
+    /*添加图外文字*/
+    arcs.append("text")
+        .attr("x", function (d) {
+            return arcPath.centroid(d)[0] * 2.5
+        })
+        .attr("y", function (d) {
+            return arcPath.centroid(d)[1] * 2.5
+        })
+        .attr("text-anchor", "middle")
+        .text(function (d, i) {
+            return d.data[0];
+        })
+</script>
+</body>
+</html>
